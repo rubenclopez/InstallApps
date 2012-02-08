@@ -1,4 +1,6 @@
 Applications/
 Personal/
 Customizations/
+DS_Store*
+*.swp
 

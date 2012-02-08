@@ -29,6 +29,8 @@ def install_application(app)
       `sudo chown -R "#{current_user}":staff /usr/local/Cellar`
       puts "Please press enter twice to install" # Figure out a way to not need to do this
       puts `/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"`
+      puts "Installing Brew Apps: ack, wget, curl, redis, memcached, libmemcached, colordiff, imagemagick... "
+      `brew install ack wget curl redis memcached libmemcached colordiff imagemagick`
     when :rvm
       File.open(".rvminstall", "w") { |f| f.puts "bash -s stable < <(curl -s https://raw.github.com/wayneeseguin/rvm/master/binscripts/rvm-installer)" }
       #`bash ./.rvminstall 2>&1`
@@ -47,6 +49,17 @@ def extract_files(zip, extract_location)
 	`mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh`
 	puts "[DONE]"
   end
+
+end
+
+def install_brew_apps(applications)
+  applications.each do |app|
+    puts "Brewing appliation #{app}... "
+    `brew install "#{app}"`
+  end 
+end
+
+def application_installed?
 
 end
 
@@ -84,8 +97,13 @@ else
   puts "[DONE]"
 end
 
-print "Installing brew... "
+puts "Installing brew... "
 #install_application(:brew)
+
+puts "Install brew applications... "
+apps = %w|mysql|
+install_brew_apps(apps)
+print "[DONE]"
 
 puts "Installing RVM... "
 #install_application(:rvm)
@@ -100,7 +118,8 @@ print "Checking for Application folder... "
 puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
 
 print "Installing applications... "
-apps = ["Skype_5.3.59.1093.dmg"]
+#apps = ["Skype_5.3.59.1093.dmg"]
+apps = []
 install_draggable_applications(apps)
 puts "[DONE]"
 
