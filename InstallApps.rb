@@ -56,21 +56,49 @@ def install_brew_apps(applications)
   applications.each do |app|
     puts "Brewing appliation #{app}... "
     `brew install "#{app}"`
+     
+     case app
+       when "mysql"
+         current_user = `whoami`
+         brew_basedir = `brew --prefix mysql`
+         puts "Configuring mysql..."
+         puts `/usr/local/bin/mysql_install_db --verbose --user="#{current_user}" --basedir="#{brew_basedir}" --datadir=/usr/local/var/mysql --tmpdir=/tmp`
+	 puts "Starting MySQL..."
+	 puts `mysql.server start`
+     end
+
   end 
 end
 
-def application_installed?
+def application_installed?(app)
+  File.exists?("/Applications/#{app}")
+end
 
+def install_by_copy(app)
+  if application_installed?(app)
+    puts "#{app} is already installed... [Aborting]"
+  else
+    print "Installing #{app[/.*[^.app]/]}... "
+    FileUtils.cp_r "./Applications/#{app}", "/Applications" 
+  end
 end
 
 def install_draggable_applications(applications)
   applications.each do |app|
     print "Mounting application #{app}... "  
-    mount_point = `hdiutil mount Applications/"#{app}" | tail -n1 | awk '{print $3}'`.chomp
+    mount_point = `hdiutil mount Applications/"#{app}" | tail -n1`.split[2..-1].join(" ")
     puts "[DONE]"
-    print "Copying Application to Applications folder... "
-    app_dir = Dir.glob("#{mount_point}/*.app")
-    FileUtils.cp_r app_dir, "/Applications"
+    print "Copying #{app} to Applications folder... "
+    app_dir  = Dir.glob("#{mount_point}/*.app").first
+    app_name = app_dir.split("/").last
+    if application_installed?(app_name) 
+      puts "#{app_name} is already installed... [Abording]"
+    else
+      FileUtils.cp_r app_dir, "/Applications"
+      puts "[DONE]"
+    end
+    print "Unmounting disk image... "
+    `hdiutil unmount "#{mount_point}"`
     puts "[DONE]"
   end  
 end
@@ -102,7 +130,7 @@ puts "Installing brew... "
 
 puts "Install brew applications... "
 apps = %w|mysql|
-install_brew_apps(apps)
+#install_brew_apps(apps)
 print "[DONE]"
 
 puts "Installing RVM... "
@@ -119,9 +147,11 @@ puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
 
 print "Installing applications... "
 #apps = ["Skype_5.3.59.1093.dmg"]
-apps = []
+apps = ["Sublime Text 2 Build 2165.dmg"]
 install_draggable_applications(apps)
-puts "[DONE]"
+#apps = ["Divvy.app", "MemoryFreer.app"]
+apps = []
+apps.each { |app| install_by_copy(app) }
 
 print "Checking for Customization folder... "
 puts check_requirements?(:CustomizationFolder) ? "[FOUND]" : "[ERROR.. Not found]"
