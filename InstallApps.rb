@@ -50,6 +50,18 @@ def extract_files(zip, extract_location)
 
 end
 
+def install_draggable_applications(applications)
+  applications.each do |app|
+    print "Mounting application #{app}... "  
+    mount_point = `hdiutil mount Applications/"#{app}" | tail -n1 | awk '{print $3}'`.chomp
+    puts "[DONE]"
+    print "Copying Application to Applications folder... "
+    app_dir = Dir.glob("#{mount_point}/*.app")
+    FileUtils.cp_r app_dir, "/Applications"
+    puts "[DONE]"
+  end  
+end
+
 
 
 puts "This application installed the primary applications I use in my normal every day computer"
@@ -86,6 +98,11 @@ install_application(:ruby)
 
 print "Checking for Application folder... "
 puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
+
+print "Installing applications... "
+apps = ["Skype_5.3.59.1093.dmg"]
+install_draggable_applications(apps)
+puts "[DONE]"
 
 print "Checking for Customization folder... "
 puts check_requirements?(:CustomizationFolder) ? "[FOUND]" : "[ERROR.. Not found]"
