@@ -1,4 +1,4 @@
-This application will install post-install applications automagically. 
+This application allows the installation of all your Every-day applications automagically.
 
 The applications that it knows about are mostly the ones I use in my every-day working environment. 
 If you would like to use this copy, it's only a simple matter of changing some array's and cases to meet your
