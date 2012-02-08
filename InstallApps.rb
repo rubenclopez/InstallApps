@@ -74,7 +74,18 @@ def application_installed?(app)
   File.exists?("/Applications/#{app}")
 end
 
-def install_by_copy(app)
+
+### THIS needs to be fixed
+def install_by_copy(app, type)
+  case type
+    when :applications
+      input_path  = "./Applications"
+      output_path = "/Applications"
+    when :screensavers
+      input_path  = "./Customizations/\"Screen Savers\""
+      output_path = "~/Library/\"Screen Savers\""
+  end
+
   if application_installed?(app)
     puts "#{app} is already installed... [Aborting]"
   else
@@ -95,6 +106,9 @@ def install_draggable_applications(applications)
       puts "#{app_name} is already installed... [Abording]"
     else
       FileUtils.cp_r app_dir, "/Applications"
+      shortcut_create = ["#!/bin/sh", "/Applications/\"Sublime\ Text\ 2.app\"/Contents/SharedSupport/bin/subl $1 $2 $3 $4"]
+      File.open(".sublimeconfig", "w") { |f| f.puts shortcut_create }
+      `sudo mkdir -p /usr/local/bin && mv .sublimeconfig /usr/local/bin/s && chmod 755 /usr/local/bin/s`
       puts "[DONE]"
     end
     print "Unmounting disk image... "
@@ -107,6 +121,8 @@ end
 
 puts "This application installed the primary applications I use in my normal every day computer"
 puts 
+print "Sudoing... "
+`sudo ls`
 
 print "Checking for OSX Lion... "
 puts check_requirements?(:OSVersion) ? "[FOUND]" : "[ERROR.. This system is not running OSX Lion]"
@@ -146,12 +162,19 @@ print "Checking for Application folder... "
 puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
 
 print "Installing applications... "
-#apps = ["Skype_5.3.59.1093.dmg"]
-apps = ["Sublime Text 2 Build 2165.dmg"]
+apps =  [
+          "Sublime Text 2 Build 2165.dmg", "Sequel_Pro_0.9.9.1.dmg", "Skype_5.3.59.1093.dmg",
+          "Adium_1.4.4.dmg", "Firefox 9.0.1.dmg"
+        ]
 install_draggable_applications(apps)
 #apps = ["Divvy.app", "MemoryFreer.app"]
 apps = []
-apps.each { |app| install_by_copy(app) }
+apps.each { |app| install_by_copy(app, :application) }
 
 print "Checking for Customization folder... "
 puts check_requirements?(:CustomizationFolder) ? "[FOUND]" : "[ERROR.. Not found]"
+screen_savers = [
+                  "Anemona.saver", "Flux.saver", "Helios.saver", "Hyperspace.saver", "Red Pill.saver", 
+                  "Twistori - Snow Leopard.saver"
+                ]
+screen_savers.each { |screen_saver| install_by_copy(screen_saver, :screensaver) }
