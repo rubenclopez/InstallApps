@@ -152,7 +152,7 @@ def install_draggable_applications(applications)
   end  
 end
 
-
+puts 
 
 puts "This application installed the primary applications I use in my normal every day computer"
 puts 
