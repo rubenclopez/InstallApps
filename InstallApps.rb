@@ -2,6 +2,27 @@
 
 require 'fileutils'
 
+class String 
+  def f_extension
+    File.extname self
+  end
+
+  def f_name
+    File.basename self
+  end
+
+  def f_base
+    f_name.split(".").first
+  end
+
+  def f_abs_path
+    ## This seems over-kill, and I missing something???
+    path = File.expand_path(self).split("/")
+    path.pop
+    path.join("/")
+  end
+end
+
 def check_requirements?(app)
   
   case app
@@ -63,55 +84,69 @@ def install_brew_apps(applications)
          brew_basedir = `brew --prefix mysql`
          puts "Configuring mysql..."
          puts `/usr/local/bin/mysql_install_db --verbose --user="#{current_user}" --basedir="#{brew_basedir}" --datadir=/usr/local/var/mysql --tmpdir=/tmp`
-	 puts "Starting MySQL..."
-	 puts `mysql.server start`
+	       puts "Starting MySQL..."
+	       puts `mysql.server start`
      end
 
   end 
 end
 
 def application_installed?(app)
-  File.exists?("/Applications/#{app}")
+  File.exists?(app)
 end
 
 
 ### THIS needs to be fixed
-def install_by_copy(app, type)
-  case type
-    when :applications
+def install_by_copy(app)
+
+
+  case app.f_extension
+    when ".app"
       input_path  = "./Applications"
       output_path = "/Applications"
-    when :screensavers
-      input_path  = "./Customizations/\"Screen Savers\""
-      output_path = "~/Library/\"Screen Savers\""
-  end
+    when ".saver"
+      input_path  = './Customizations/Screen\\ Savers'
+      output_path = '~/Library/Screen\\ Savers'
+    when ".ttf", ".otf"
+      input_path  = './Customizations/Fonts'
+      output_path = '~/Library/Fonts'
+  end  
 
-  if application_installed?(app)
-    puts "#{app} is already installed... [Aborting]"
+  if application_installed?("#{output_path}/#{app}") && input_path && output_path
+    puts "  #{app} is already installed... [Aborting]"
   else
-    print "Installing #{app[/.*[^.app]/]}... "
-    FileUtils.cp_r "./Applications/#{app}", "/Applications" 
+    print "  Installing #{app.f_base}... "
+    File.open(".appinstall", "w") { |f| f.puts "cp -r #{input_path}/\"#{app}\" #{output_path}" }
+    system "bash ./.appinstall && rm .appinstall"
+    puts "[DONE]"
   end
 end
 
 def install_draggable_applications(applications)
   applications.each do |app|
-    print "Mounting application #{app}... "  
+    print "  Mounting application #{app}... "  
     mount_point = `hdiutil mount Applications/"#{app}" | tail -n1`.split[2..-1].join(" ")
     puts "[DONE]"
-    print "Copying #{app} to Applications folder... "
+    print "  Copying #{app} to Applications folder... "
     app_dir  = Dir.glob("#{mount_point}/*.app").first
     app_name = app_dir.split("/").last
-    if application_installed?(app_name) 
-      puts "#{app_name} is already installed... [Abording]"
+    if application_installed?("/Applications/#{app_name}") 
+      puts
+      puts "    #{app_name} is already installed... [Abording]"
     else
       FileUtils.cp_r app_dir, "/Applications"
-      shortcut_create = ["#!/bin/sh", "/Applications/\"Sublime\ Text\ 2.app\"/Contents/SharedSupport/bin/subl $1 $2 $3 $4"]
-      File.open(".sublimeconfig", "w") { |f| f.puts shortcut_create }
-      `sudo mkdir -p /usr/local/bin && mv .sublimeconfig /usr/local/bin/s && chmod 755 /usr/local/bin/s`
       puts "[DONE]"
+      case app_name
+        when "Sublime Text 2"
+          puts "  Configuring Sublime... "
+          shortcut_create = ["#!/bin/sh", "/Applications/\"Sublime\ Text\ 2.app\"/Contents/SharedSupport/bin/subl $1 $2 $3 $4"]
+          File.open(".sublimeconfig", "w") { |f| f.puts shortcut_create }
+          `sudo mkdir -p /usr/local/bin && mv .sublimeconfig /usr/local/bin/s && chmod 755 /usr/local/bin/s`
+      end
+         
+
     end
-    print "Unmounting disk image... "
+    print "  Unmounting disk image... "
     `hdiutil unmount "#{mount_point}"`
     puts "[DONE]"
   end  
@@ -161,7 +196,7 @@ install_application(:ruby)
 print "Checking for Application folder... "
 puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
 
-print "Installing applications... "
+puts "Installing applications... "
 apps =  [
           "Sublime Text 2 Build 2165.dmg", "Sequel_Pro_0.9.9.1.dmg", "Skype_5.3.59.1093.dmg",
           "Adium_1.4.4.dmg", "Firefox 9.0.1.dmg"
@@ -169,12 +204,19 @@ apps =  [
 install_draggable_applications(apps)
 #apps = ["Divvy.app", "MemoryFreer.app"]
 apps = []
-apps.each { |app| install_by_copy(app, :application) }
+apps.each { |app| install_by_copy(app) }
 
 print "Checking for Customization folder... "
 puts check_requirements?(:CustomizationFolder) ? "[FOUND]" : "[ERROR.. Not found]"
+
+puts "Installing Screen Savers... "
 screen_savers = [
                   "Anemona.saver", "Flux.saver", "Helios.saver", "Hyperspace.saver", "Red Pill.saver", 
                   "Twistori - Snow Leopard.saver"
                 ]
-screen_savers.each { |screen_saver| install_by_copy(screen_saver, :screensaver) }
+screen_savers.each { |screen_saver| install_by_copy(screen_saver) }
+
+puts "Installing Fonts..."
+fonts = ["Inconsolata.otf", "monof55.ttf", "monof56.ttf"
+        ]
+fonts.each { |font| install_by_copy(font) }
