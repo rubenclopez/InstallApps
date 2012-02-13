@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+## TODO: Add a way to install .pkg files by themselves. 
+
+
 require 'fileutils'
 
 class String 
@@ -59,6 +62,8 @@ def install_application(app)
       `~/.rvm/bin/rvm pkg install readline iconv`
     when :ruby
       #`rvm install 1.9.3`
+    ## TODO: Add Sophos anti-virus
+    ## TODO: Add LittleSnitch
   end
 
 end
@@ -66,9 +71,9 @@ end
 def extract_files(zip, extract_location)
   case zip
     when /.tar$/
-	print "Extracting #{zip} into #{extract_location}... "
-	`mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh`
-	puts "[DONE]"
+  print "Extracting #{zip} into #{extract_location}... "
+  `mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh`
+  puts "[DONE]"
   end
 
 end
@@ -84,8 +89,8 @@ def install_brew_apps(applications)
          brew_basedir = `brew --prefix mysql`
          puts "Configuring mysql..."
          puts `/usr/local/bin/mysql_install_db --verbose --user="#{current_user}" --basedir="#{brew_basedir}" --datadir=/usr/local/var/mysql --tmpdir=/tmp`
-	       puts "Starting MySQL..."
-	       puts `mysql.server start`
+         puts "Starting MySQL..."
+         puts `mysql.server start`
      end
 
   end 
@@ -94,12 +99,10 @@ end
 def application_installed?(app)
   File.exists?(app)
 end
+// /* */
 
-
-### THIS needs to be fixed
+### TODO: Certain applications will be better placled in the /Applications/Utilities folder 
 def install_by_copy(app)
-
-
   case app.f_extension
     when ".app"
       input_path  = "./Applications"
@@ -110,6 +113,8 @@ def install_by_copy(app)
     when ".ttf", ".otf"
       input_path  = './Customizations/Fonts'
       output_path = '~/Library/Fonts'
+    when ".mpkg", ".pkg"
+      input_path  = "./Applications"
   end  
 
   if application_installed?("#{output_path}/#{app}") && input_path && output_path
@@ -120,6 +125,13 @@ def install_by_copy(app)
     system "bash ./.appinstall && rm .appinstall"
     puts "[DONE]"
   end
+end
+
+
+def install_packages(app)
+
+         `installer -pkg "#{app}" -target /`
+
 end
 
 def install_draggable_applications(applications)
@@ -146,7 +158,7 @@ def install_draggable_applications(applications)
          
 
     end
-    print "  Unmounting disk image... "
+    print "       Unmounting disk image... "
     `hdiutil unmount "#{mount_point}"`
     puts "[DONE]"
   end  
@@ -192,31 +204,46 @@ print "[DONE]"
 print "Installing ruby 1.9.3"
 install_application(:ruby)
 
+def check_requirements
+  print "Checking for Application folder... "
+  if check_requirements?(:AppFolder)
+    puts "[PASS]"
+  else
+    puts "#{PROGRAM_NAME}: application folder not found."
+    exit 1
+  end
 
-print "Checking for Application folder... "
-puts check_requirements?(:AppFolder) ? "[FOUND]" : "[ERROR.. Not found]"
+  print "Checking for Customization folder... "
+  if check_requirements?(:CustomizationFolder)
+    puts "[PASS]"
+  else
+    puts "#{PROGRAM_NAME}: Customizations folder not found."
+    exit 1
+  end
+end
 
-puts "Installing applications... "
-apps =  [
-          "Sublime Text 2 Build 2165.dmg", "Sequel_Pro_0.9.9.1.dmg", "Skype_5.3.59.1093.dmg",
-          "Adium_1.4.4.dmg", "Firefox 9.0.1.dmg"
-        ]
-install_draggable_applications(apps)
-#apps = ["Divvy.app", "MemoryFreer.app"]
-apps = []
-apps.each { |app| install_by_copy(app) }
+def install_applications(types)
+  puts "Installing applications... " unless types.empty?
+  apps =  [
+            "Sublime Text 2 Build 2165.dmg", "Sequel_Pro_0.9.9.1.dmg", "Skype_5.3.59.1093.dmg",
+            "Adium_1.4.4.dmg", "Firefox 9.0.1.dmg", "vlc-1.1.12-intel64.dmg", "Sparrow-latest.dmg",
+            "CarbonCopy-3.4.4.dmg", "Dropbox 1.2.51.dmg", "Office_2008.mpkg", "VirtualBox.mpkg", 
+            "Adobe Flash Player.pkg", "GrowlNotify.pkg", "iPhoto.pkg", "iPhotoContent.pkg", 
+            "iPhotoLibraryUpgradeTool.pkg", "The Unarchiver.app", "Divvy.app", "MemoryFreer.app", 
+            "Loginox 1.0.5b3.app", "NoobProof.app", "WaterRoof.app", "smcFanControl.app", 
+            "LockScreen2.app", "Flare.app", "All2MP3.app", "Anemona.saver", "Flux.saver", 
+            "Helios.saver", "Hyperspace.saver", "Red Pill.saver", "Twistori - Snow Leopard.saver"
+            "Inconsolata.otf", "monof55.ttf", "monof56.ttf"  
+          ]
+  install_draggable_applications(apps)  
+end
 
-print "Checking for Customization folder... "
-puts check_requirements?(:CustomizationFolder) ? "[FOUND]" : "[ERROR.. Not found]"
+def init
+
+puts
 
 puts "Installing Screen Savers... "
-screen_savers = [
-                  "Anemona.saver", "Flux.saver", "Helios.saver", "Hyperspace.saver", "Red Pill.saver", 
-                  "Twistori - Snow Leopard.saver"
-                ]
 screen_savers.each { |screen_saver| install_by_copy(screen_saver) }
 
 puts "Installing Fonts..."
-fonts = ["Inconsolata.otf", "monof55.ttf", "monof56.ttf"
-        ]
 fonts.each { |font| install_by_copy(font) }
