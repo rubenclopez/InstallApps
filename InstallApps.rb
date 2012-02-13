@@ -92,11 +92,10 @@ end
 def extract_files(zip, extract_location)
   case zip
     when /.tar$/
-  print "Extracting #{zip} into #{extract_location}... "
-  `mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh`
-  puts "[DONE]"
+      print "Extracting #{zip} into #{extract_location}... "
+      extract_output = ExecApplication::init('mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh') 
+    puts "[DONE]"
   end
-
 end
 
 def install_brew_apps(applications)
