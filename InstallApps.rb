@@ -29,31 +29,30 @@ end
 
 module ExecApplication
   attr_accessor :response, :exitcode
-  
+
   def self.init(cmd)
       output    = POpen4::popen4(cmd) { |out, err, stdin| @response = out.map { |l| l } }
       @exitcode  = output.exitstatus    
       @response = @response.join("")
+      [@response, @exitcode]
   end
+
+
 end
 
 
-o = ExecApplication::init("ls -lah")
-puts "#### #{o}"
-
-exit
 def check_requirements?(app)
   
   case app
     when :xcode
-      xcode_version = `xcodebuild -version 2>&1 /dev/null`[/.*[^\n]/].split.last
+      xcode_version = ExecApplication::init("xcodebuild -version 2>&1 /dev/null")[0][/.*[^\n]/].split.last
       xcode_version[/4.*/] ? true : false
     when :AppFolder
       File.exists? "Applications"
     when :CustomizationFolder
       File.exists? "Customizations"
     when :OSVersion
-      os_version    = `cat /System/Library/CoreServices/SystemVersion.plist | grep '10.7' | head -n1`[/\d{2}\.\d+\.\d+/]
+      os_version    = ExecApplication::init("cat /System/Library/CoreServices/SystemVersion.plist | grep '10.7' | head -n1")[0][/\d{2}\.\d+\.\d+/]
       os_version[/7.*/] ? true : false
   end
 
