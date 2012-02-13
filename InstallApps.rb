@@ -136,6 +136,19 @@ end
 
 def install_draggable_applications(applications)
   applications.each do |app|
+
+    case app
+      when app[/.app/]
+        
+      when app[/\.mpkg|\.pkg/]
+      when app[/.saver/]
+      when app[/\.otf|\.ttf/]
+      when app[/\.zip|\.tar\.gz|\.tar]
+    end
+
+
+
+
     print "  Mounting application #{app}... "  
     mount_point = `hdiutil mount Applications/"#{app}" | tail -n1`.split[2..-1].join(" ")
     puts "[DONE]"
@@ -162,6 +175,9 @@ def install_draggable_applications(applications)
     `hdiutil unmount "#{mount_point}"`
     puts "[DONE]"
   end  
+end
+
+def install_application
 end
 
 puts 
@@ -204,7 +220,7 @@ print "[DONE]"
 print "Installing ruby 1.9.3"
 install_application(:ruby)
 
-def check_requirements
+def init_check_requirements
   print "Checking for Application folder... "
   if check_requirements?(:AppFolder)
     puts "[PASS]"
@@ -222,7 +238,7 @@ def check_requirements
   end
 end
 
-def install_applications(types)
+def init_additional_applications(types)
   puts "Installing applications... " unless types.empty?
   apps =  [
             "Sublime Text 2 Build 2165.dmg", "Sequel_Pro_0.9.9.1.dmg", "Skype_5.3.59.1093.dmg",
@@ -237,13 +253,3 @@ def install_applications(types)
           ]
   install_draggable_applications(apps)  
 end
-
-def init
-
-puts
-
-puts "Installing Screen Savers... "
-screen_savers.each { |screen_saver| install_by_copy(screen_saver) }
-
-puts "Installing Fonts..."
-fonts.each { |font| install_by_copy(font) }
