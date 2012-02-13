@@ -3,6 +3,7 @@
 ## TODO: Add a way to install .pkg files by themselves. 
 
 
+
 require 'fileutils'
 require 'popen4'
 
@@ -40,6 +41,10 @@ module ExecApplication
 
 end
 
+def emulate_keystroke(key)
+  ["tell application "System Events"]
+end
+
 
 def check_requirements?(app)
   
@@ -70,9 +75,11 @@ def install_application(app)
       ExecApplication::init('sudo mkdir -p /usr/local/Cellar') 
       ExecApplication::init('sudo chown -R "#{current_user}":staff /usr/local/Cellar')
             
-      install_output = ExecApplication::init('/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"') 
+      install_output = ExecApplication::init("/usr/bin/ruby -e $(curl -fsSL https://raw.github.com/gist/323731) & osascript ../../AppleScript/simulate_key.script") 
+      ExecAppli
       puts "Installing Brew Apps: ack, wget, curl, redis, memcached, libmemcached, colordiff, imagemagick... "
       ExecApplication::init('brew install ack wget curl redis memcached libmemcached colordiff imagemagick') 
+      emulate_keystroke(36)
     when :rvm
       File.open(".rvminstall", "w") { |f| f.puts "bash -s stable < <(curl -s https://raw.github.com/wayneeseguin/rvm/master/binscripts/rvm-installer)" }
       #`bash ./.rvminstall 2>&1`
@@ -88,12 +95,19 @@ end
 
 
 
+  # puts "Please press enter twice to install" # Figure out a way to not need to do this
+  #     puts `/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"`
+  #     puts "Installing Brew Apps: ack, wget, curl, redis, memcached, libmemcached, colordiff, imagemagick... "
+  #     `brew install ack wget curl redis memcached libmemcached colordiff imagemagick`
+  #   when :rvm
+
+
 
 def extract_files(zip, extract_location)
   case zip
     when /.tar$/
       print "Extracting #{zip} into #{extract_location}... "
-      extract_output = ExecApplication::init('mkdir -p ~/.ssh && tar -xf ./Personal/"#{zip}" -C ~/.ssh') 
+      extract_output = ExecApplication::init("mkdir -p ~/.ssh && tar -xf ./Personal/#{zip} -C ~/.ssh") 
     puts "[DONE]"
   end
 end
@@ -101,16 +115,18 @@ end
 def install_brew_apps(applications)
   applications.each do |app|
     puts "Brewing appliation #{app}... "
-    `brew install "#{app}"`
+    brew_install_output = ExecApplication::init("brew install #{app}") 
      
      case app
        when "mysql"
-         current_user = `whoami`
-         brew_basedir = `brew --prefix mysql`
+         current_user = ExecApplication::init("whoami")[0] 
+         brew_basedir = ExecApplication::init("brew --prefix mysql")[0]
          puts "Configuring mysql..."
-         puts `/usr/local/bin/mysql_install_db --verbose --user="#{current_user}" --basedir="#{brew_basedir}" --datadir=/usr/local/var/mysql --tmpdir=/tmp`
+         mysql_config_data = ExecApplication::init("/usr/local/bin/mysql_install_db --verbose --user=#{current_user} --basedir=#{brew_basedir} --datadir=/usr/local/var/mysql --tmpdir=/tmp") 
          puts "Starting MySQL..."
-         puts `mysql.server start`
+         mysql_start_data = ExecApplication::init("mysql.server start") 
+         puts "   mysql_start_data"
+
      end
 
   end 
