@@ -57,24 +57,27 @@ def check_requirements?(app)
   end
 
 end
+ 
+
 
 def install_application(app)
   case app
     when :xcode
-      puts `sudo installer -verbose -pkg ./Applications/Install\\ Xcode.app/Contents/Resources/Xcode.mpkg -target /`
+           
+      install_output = ExecApplication::init('sudo installer -verbose -pkg ./Applications/Install\\ Xcode.app/Contents/Resources/Xcode.mpkg -target /') 
     when :brew
       current_user = `whoami`.chomp
-      `sudo mkdir -p /usr/local/Cellar`
-      `sudo chown -R "#{current_user}":staff /usr/local/Cellar`
-      puts "Please press enter twice to install" # Figure out a way to not need to do this
-      puts `/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"`
+      ExecApplication::init('sudo mkdir -p /usr/local/Cellar') 
+      ExecApplication::init('sudo chown -R "#{current_user}":staff /usr/local/Cellar')
+            
+      install_output = ExecApplication::init('/usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"') 
       puts "Installing Brew Apps: ack, wget, curl, redis, memcached, libmemcached, colordiff, imagemagick... "
-      `brew install ack wget curl redis memcached libmemcached colordiff imagemagick`
+      ExecApplication::init('brew install ack wget curl redis memcached libmemcached colordiff imagemagick') 
     when :rvm
       File.open(".rvminstall", "w") { |f| f.puts "bash -s stable < <(curl -s https://raw.github.com/wayneeseguin/rvm/master/binscripts/rvm-installer)" }
       #`bash ./.rvminstall 2>&1`
       File.delete('.rvminstall')
-      `~/.rvm/bin/rvm pkg install readline iconv`
+      ExecApplication::init('~/.rvm/bin/rvm pkg install readline iconv')
     when :ruby
       #`rvm install 1.9.3`
     ## TODO: Add Sophos anti-virus
