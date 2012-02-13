@@ -4,6 +4,7 @@
 
 
 require 'fileutils'
+require 'popen4'
 
 class String 
   def f_extension
@@ -26,6 +27,21 @@ class String
   end
 end
 
+module ExecApplication
+  attr_accessor :response, :exitcode
+  
+  def self.init(cmd)
+      output    = POpen4::popen4(cmd) { |out, err, stdin| @response = out.map { |l| l } }
+      @exitcode  = output.exitstatus    
+      @response = @response.join("")
+  end
+end
+
+
+o = ExecApplication::init("ls -lah")
+puts "#### #{o}"
+
+exit
 def check_requirements?(app)
   
   case app
@@ -68,6 +84,9 @@ def install_application(app)
 
 end
 
+
+
+
 def extract_files(zip, extract_location)
   case zip
     when /.tar$/
@@ -99,7 +118,7 @@ end
 def application_installed?(app)
   File.exists?(app)
 end
-// /* */
+
 
 ### TODO: Certain applications will be better placled in the /Applications/Utilities folder 
 def install_by_copy(app)
@@ -134,51 +153,44 @@ def install_packages(app)
 
 end
 
-def install_draggable_applications(applications)
-  applications.each do |app|
-
+def install_draggable_applications(app)
     case app
       when app[/.app/]
-        
+        print "  Mounting application #{app}... "  
+            mount_point = `hdiutil mount Applications/"#{app}" | tail -n1`.split[2..-1].join(" ")
+
       when app[/\.mpkg|\.pkg/]
       when app[/.saver/]
       when app[/\.otf|\.ttf/]
-      when app[/\.zip|\.tar\.gz|\.tar]
+      when app[/\.zip|\.tar\.gz|\.tar/]
     end
-
-
-
-
-    print "  Mounting application #{app}... "  
-    mount_point = `hdiutil mount Applications/"#{app}" | tail -n1`.split[2..-1].join(" ")
-    puts "[DONE]"
-    print "  Copying #{app} to Applications folder... "
-    app_dir  = Dir.glob("#{mount_point}/*.app").first
-    app_name = app_dir.split("/").last
-    if application_installed?("/Applications/#{app_name}") 
-      puts
-      puts "    #{app_name} is already installed... [Abording]"
-    else
-      FileUtils.cp_r app_dir, "/Applications"
-      puts "[DONE]"
-      case app_name
-        when "Sublime Text 2"
-          puts "  Configuring Sublime... "
-          shortcut_create = ["#!/bin/sh", "/Applications/\"Sublime\ Text\ 2.app\"/Contents/SharedSupport/bin/subl $1 $2 $3 $4"]
-          File.open(".sublimeconfig", "w") { |f| f.puts shortcut_create }
-          `sudo mkdir -p /usr/local/bin && mv .sublimeconfig /usr/local/bin/s && chmod 755 /usr/local/bin/s`
-      end
+       
+  #   puts "[DONE]"
+  #   print "  Copying #{app} to Applications folder... "
+  #   app_dir  = Dir.glob("#{mount_point}/*.app").first
+  #   app_name = app_dir.split("/").last
+  #   if application_installed?("/Applications/#{app_name}") 
+  #     puts
+  #     puts "    #{app_name} is already installed... [Abording]"
+  #   else
+  #     FileUtils.cp_r app_dir, "/Applications"
+  #     puts "[DONE]"
+  #     case app_name
+  #       when "Sublime Text 2"
+  #         puts "  Configuring Sublime... "
+  #         shortcut_create = ["#!/bin/sh", "/Applications/\"Sublime\ Text\ 2.app\"/Contents/SharedSupport/bin/subl $1 $2 $3 $4"]
+  #         File.open(".sublimeconfig", "w") { |f| f.puts shortcut_create }
+  #         `sudo mkdir -p /usr/local/bin && mv .sublimeconfig /usr/local/bin/s && chmod 755 /usr/local/bin/s`
+  #     end
          
 
-    end
-    print "       Unmounting disk image... "
-    `hdiutil unmount "#{mount_point}"`
-    puts "[DONE]"
-  end  
+  #   end
+  #   print "       Unmounting disk image... "
+  #   `hdiutil unmount "#{mount_point}"`
+  #   puts "[DONE]"
+  # end  
 end
 
-def install_application
-end
 
 puts 
 
@@ -248,7 +260,7 @@ def init_additional_applications(types)
             "iPhotoLibraryUpgradeTool.pkg", "The Unarchiver.app", "Divvy.app", "MemoryFreer.app", 
             "Loginox 1.0.5b3.app", "NoobProof.app", "WaterRoof.app", "smcFanControl.app", 
             "LockScreen2.app", "Flare.app", "All2MP3.app", "Anemona.saver", "Flux.saver", 
-            "Helios.saver", "Hyperspace.saver", "Red Pill.saver", "Twistori - Snow Leopard.saver"
+            "Helios.saver", "Hyperspace.saver", "Red Pill.saver", "Twistori - Snow Leopard.saver",
             "Inconsolata.otf", "monof55.ttf", "monof56.ttf"  
           ]
   install_draggable_applications(apps)  
