@@ -1,27 +1,28 @@
 require "spec_helper.rb"
 require "exec_application.rb"
 
-describe ExecApplication do
+describe "Running an application and getting it's output and exit code" do
 	describe "#init" do
 		before(:each) do 
-			g = ExecApplication::init("ruby -v")
-			puts "######## #{g}"
+			@g = ExecApplication::init("ruby -v")
 		end
 
-		it "execulation is successfull." do
-			true
-		end
-			
-		it "exection exited with error code" do
-			pending
+		it "should be successfull" do
+			@g[1].should == 0
 		end
 
-		it "exection returned no output" do
-			pending
+		it "should be uncessfull" do
+			@g[1].should equal(0)
+		end
+	
+		it "it should return no output" do
+			output = ExecApplication::init("ls 2>&1 > /dev/null")[0]
+			output.should == ""
 		end
 
-		it "not paramaters passed" do
-			pending
+		it "should test no arguments" do
+			expect { ExecApplication::init() }.to raise_error(ArgumentError)
 		end
 	end
 end
+
