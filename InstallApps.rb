@@ -5,7 +5,9 @@
 
 
 require 'fileutils'
+require 'rubygems'
 require 'popen4'
+require 'exec_application'
 
 class String 
   def f_extension
@@ -28,38 +30,20 @@ class String
   end
 end
 
-module ExecApplication
-  attr_accessor :response, :exitcode
-
-  def self.init(cmd)
-      output    = POpen4::popen4(cmd) { |out, err, stdin| @response = out.map { |l| l } }
-      @exitcode  = output.exitstatus    
-      @response = @response.join("")
-      [@response, @exitcode]
-  end
-
-
-end
-
-def emulate_keystroke(key)
-  ["tell application "System Events"]
-end
-
-
 def check_requirements?(app)
   
-  case app
-    when :xcode
-      xcode_version = ExecApplication::init("xcodebuild -version 2>&1 /dev/null")[0][/.*[^\n]/].split.last
-      xcode_version[/4.*/] ? true : false
-    when :AppFolder
-      File.exists? "Applications"
-    when :CustomizationFolder
-      File.exists? "Customizations"
-    when :OSVersion
-      os_version    = ExecApplication::init("cat /System/Library/CoreServices/SystemVersion.plist | grep '10.7' | head -n1")[0][/\d{2}\.\d+\.\d+/]
-      os_version[/7.*/] ? true : false
-  end
+  # case app
+  #   when :xcode
+  #     xcode_version = ExecApplication::init("xcodebuild -version 2>&1 /dev/null")[0][/.*[^\n]/].split.last
+  #     xcode_version[/4.*/] ? true : false
+  #   when :AppFolder
+  #     File.exists? "Applications"
+  #   when :CustomizationFolder
+  #     File.exists? "Customizations"
+  #   when :OSVersion
+  #     os_version    = ExecApplication::init("cat /System/Library/CoreServices/SystemVersion.plist | grep '10.7' | head -n1")[0][/\d{2}\.\d+\.\d+/]
+  #     os_version[/7.*/] ? true : false
+  # end
 
 end
  
