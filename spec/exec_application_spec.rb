@@ -8,20 +8,20 @@ describe ExecApplication, "Running an application and getting it's output and ex
 			@g = ExecApplication::init("ruby -v")
 		end
 
-		it "should return an array containing a output and exit status" do
+		it "returns an array containing a output and exit status" do
 			@g.class.should == Array
 			@g.count.should == 2
 		end
 		
-		it "should return an exit status of 0 (SUCESS)" do
+		it "returns an exit status of 0 (SUCESS)" do
 			@g[1].should == 0
 		end
 
-		it "should return an exit status greater than 0 (ERROR)" do
+		it "returns an exit status greater than 0 (ERROR)" do
 			@g[1].should be <= 0
 		end
 
-		it "should complain when its required parameter was not given" do
+		it "complains when its required parameter was not given" do
 			output = ExecApplication::init()
 			output.should == false
 		end
