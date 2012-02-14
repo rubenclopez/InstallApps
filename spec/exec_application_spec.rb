@@ -1,7 +1,7 @@
 require "spec_helper.rb"
 require "exec_application.rb"
 
-describe "Running an application and getting it's output and exit code" do
+describe ExecApplication, "Running an application and getting it's output and exit code" do
 	describe "#init" do
 		before(:each) do 
 			@g = ExecApplication::init("ruby -v")
