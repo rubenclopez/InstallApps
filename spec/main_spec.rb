@@ -4,10 +4,11 @@
 
 
 require "spec_helper.rb"
+require 'main.rb'
 
-describe InstallApplication, "Running an application and getting it's output and exit code" do
+describe Main, "Running an application and getting it's output and exit code" do
 	
-	describe "#check_requirements?"
+	describe "#check_requirements?" do
 		it "returns true or false depending on symbol passed"
 		it "complains when its required argument is not passed"
 		it "checks if xcode is installed"
@@ -16,7 +17,7 @@ describe InstallApplication, "Running an application and getting it's output and
 		it "checks that the current OS is OSX Lion"
 	end
 
-	describe "#install_application"
+	describe "#install_application" do
 		it "installs brew" do
 			pending
 		end
@@ -26,13 +27,14 @@ describe InstallApplication, "Running an application and getting it's output and
 		it "installs ruby" do
 			pending
 		end
+
 		it "returns exitcode 0 (SUCCESS)" do
 			pending
 		end
 
 	end
 
-	describe "#extract_files"
+	describe "#extract_files" do
 		it "extracts .tar files" do
 			pending
 		end
@@ -47,7 +49,7 @@ describe InstallApplication, "Running an application and getting it's output and
 		end
 	end
 
-	describe "#install_brew_apps"
+	describe "#install_brew_apps" do
 		it "complains when its required argument is not passed" do
 			pending
 		end
@@ -62,7 +64,7 @@ describe InstallApplication, "Running an application and getting it's output and
 		end
 	end
 
-	describe "#application_installed?"
+	describe "#application_installed?" do
 		it "returns true" do
 			pending
 		end
@@ -90,9 +92,9 @@ describe InstallApplication, "Running an application and getting it's output and
 		it "returns exitcode 0 (SUCCESS)"
 	end
 
-	describe "#install_draggable_applications"
-	it "complains when its requirement argument is not passed"
-	it "returns exitcode 0"
+	describe "#install_draggable_applications" do
+		it "complains when its requirement argument is not passed"
+		it "returns exitcode 0"
 	end
 
 end # END OF parent describe block
