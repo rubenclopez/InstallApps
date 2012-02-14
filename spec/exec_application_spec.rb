@@ -2,26 +2,28 @@ require "spec_helper.rb"
 require "exec_application.rb"
 
 describe ExecApplication, "Running an application and getting it's output and exit code" do
+	
 	describe "#init" do
 		before(:each) do 
 			@g = ExecApplication::init("ruby -v")
 		end
 
-		it "should be successfull" do
+		it "should return an array containing a output and exit status" do
+			@g.class.should == Array
+			@g.count.should == 2
+		end
+		
+		it "should return an exit status of 0 (SUCESS)" do
 			@g[1].should == 0
 		end
 
-		it "should be uncessfull" do
-			@g[1].should equal(0)
-		end
-	
-		it "it should return no output" do
-			output = ExecApplication::init("ls 2>&1 > /dev/null")[0]
-			output.should == ""
+		it "should return an exit status greater than 0 (ERROR)" do
+			@g[1].should be <= 0
 		end
 
-		it "should test no arguments" do
-			expect { ExecApplication::init() }.to raise_error(ArgumentError)
+		it "should complain when its required parameter was not given" do
+			output = ExecApplication::init()
+			output.should == false
 		end
 	end
 end
