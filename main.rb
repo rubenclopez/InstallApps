@@ -1,3 +1,5 @@
+require "exec_application.rb"
+
 module Main
 
   def self.check_requirements?(app)
@@ -45,12 +47,19 @@ module Main
     end
   end
 
-  def self.extract_files(zip, extract_location)
-    case zip
-      when /.tar$/
-        print "Extracting #{zip} into #{extract_location}... "
-        extract_output = ExecApplication::init("mkdir -p ~/.ssh && tar -xf ./Personal/#{zip} -C ~/.ssh") 
-      puts "[DONE]"
+  def self.extract_files(file, extract_location)
+    #puts "Extracting #{file} into #{extract_location}... "
+
+    case file
+      when /\.tar$/
+        extract_output = ExecApplication::init("mkdir -p #{extract_location} && tar -xf #{file} -C #{extract_location}") 
+      when /\.zip$/
+        extract_output = ExecApplication::init("mkdir -p #{extract_location} && unzip #{file} -d #{extract_location}") 
+      when /\.tar\.gz$/
+        extract_output = ExecApplication::init("mkdir -p #{extract_location} && tar -zxf #{file} -C #{extract_location}") 
+      else
+        false
+      #puts "[DONE]"
     end
   end
 
@@ -75,8 +84,13 @@ module Main
 
   
   def self.application_installed?(app)
-    File.exists?(app)
+    path  = app.include?('/Applications/') ? '' : '/Applications/' || '/Applications/'
+    ext   = app.include?('.app') ? '' : '.app' || '.app'
+
+      File.exists? "#{path}#{app}#{ext}"
   end  
+
+
 
 
   def self.init_check_requirements
