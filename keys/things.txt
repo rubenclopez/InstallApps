@@ -1,4 +1,0 @@
-Things:
-	Name: zxvf
-	Serial: TMST6-VWQE-KGSH-LFQV-XW19-1CF1
-	Ver: 1.5.4
